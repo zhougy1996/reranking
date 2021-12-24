@@ -4,9 +4,8 @@ import torch
 import numpy as np
 from sklearn.metrics import accuracy_score
 from torch.utils.data import Dataset, DataLoader
-from transformers import AdamW, get_cosine_schedule_with_warmup
+from transformers import get_linear_schedule_with_warmup
 from torch.utils.tensorboard import SummaryWriter
-
 
 
 # 将DataFrame划分为训练集和验证集
@@ -48,8 +47,9 @@ class Trainer:
         # 初始化训练参数
         model = self.model
         train_loader = self.train_loader
-        optimizer = AdamW(model.parameters(), lr=3e-5, weight_decay=1e-4)
-        scheduler = get_cosine_schedule_with_warmup(optimizer, num_warmup_steps=len(train_loader),
+        optimizer = torch.optim.SGD(model.parameters(), lr=1e-3, momentum=0.9, dampening=0,
+                                    weight_decay=1e-5, nesterov=False)
+        scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=len(train_loader),
                                                     num_training_steps=epoch_num*len(train_loader))
         criterion = torch.nn.BCELoss()
 
@@ -73,10 +73,10 @@ class Trainer:
                 scheduler.step()
                 self.writer.add_scalar('loss', loss, global_step=epoch*len(train_loader)+i)
                 epoch_loss += loss.item()
+                self.writer.add_scalar('epoch loss', epoch_loss / (i + 1), global_step=epoch*len(train_loader)+i)
 
                 # 计算平均损失
                 if (i + 1) % (len(train_loader) // 10) == 0:
-                    self.writer.add_scalar('epoch loss', epoch_loss, global_step=epoch*len(train_loader)+i)
                     print('Step {:04d}/{:04d}  Epoch Loss: {:.4f}  Time: {:.4f}s:'
                           .format((i + 1), len(train_loader), epoch_loss / (i + 1), time.time() - start))
 

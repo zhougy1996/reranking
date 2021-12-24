@@ -25,4 +25,4 @@ trainer.train(DEVICE, 1)
 # Save trained model
 # print('Accuracy: {:.4f}'.format(trainer.evaluate(DEVICE)))
 
-torch.save(model, os.path.join(ROOT_DIR, 'models/my_model.pkl'))
+# torch.save(model, os.path.join(ROOT_DIR, 'models/my_model.pkl'))

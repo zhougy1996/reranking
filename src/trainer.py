@@ -25,12 +25,12 @@ class TextSet(Dataset):
         query = self.dataset.loc[item, 'query']
         passage = self.dataset.loc[item, 'passage']
         is_relevant = self.dataset.loc[item, 'is_relevant']
-        return {'text': query + passage, 'label': is_relevant}
+        return {'text': + query + '[SEP]' + passage, 'label': is_relevant}
 
 
 class Trainer:
     MAX_TEXT_LENGTH = 256
-    BATCH_SIZE = 4
+    BATCH_SIZE = 2
 
     def __init__(self, model, tokenizer, dataset, frac=0.8):
         self.model = model

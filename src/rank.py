@@ -1,5 +1,6 @@
 import torch
 import pandas as pd
+import numpy
 from transformers import BertTokenizer
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -15,9 +16,17 @@ model.eval()
 
 def predict(query, passage):
     text = query + '[SEP]' + passage
-    tokenized_text = tokenizer(text, max_length=MAX_TEXT_LENGTH, truncation=True, padding=True, return_tensors='pt').to(DEVICE)
+    tokenized_text = tokenizer(text, max_length=MAX_TEXT_LENGTH, truncation=True, padding=True, return_tensors='pt').to(
+        DEVICE)
     outputs = model(**tokenized_text)
     return outputs
+
+
+def get_score(query, passage):
+    probabilities = torch.softmax(predict(query, passage), dim=1).data.numpy()[0]
+    odds = probabilities[1] / probabilities[0]
+    # Use log odds(logit) as score
+    return numpy.log(odds)
 
 
 # 读取验证集（使用2019年的测试集作为验证集，43个验证查询）
@@ -38,10 +47,11 @@ criterion = torch.nn.CrossEntropyLoss()
 q = "seraphina name meaning"
 p = "Hebrew Meaning: The name Seraphina is a Hebrew baby name. In Hebrew the meaning of the name Seraphina is: " \
     "Fiery-winged. The name Seraphina comes from 'seraphim', who were the most powerful angels. "
-result = predict(q, p)
-loss_0 = criterion(result, torch.Tensor([[1, 0]])).data.numpy()
-loss_1 = criterion(result, torch.Tensor([[0, 1]])).data.numpy()
-print(loss_0)
-print(loss_1)
+# result = predict(q, p)
+# loss_0 = criterion(result, torch.Tensor([[1, 0]])).data.numpy()
+# loss_1 = criterion(result, torch.Tensor([[0, 1]])).data.numpy()
+# print(loss_0)
+# print(loss_1)
+score = get_score(q, p)
+print(score)
 pass
-

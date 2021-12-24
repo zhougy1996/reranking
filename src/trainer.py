@@ -52,8 +52,9 @@ class Trainer:
 
         # 开始训练
         self.model.train()
-        print('***** Training *****')
+        print('********* Training Start *********\n')
         for epoch in range(epoch_num):
+            print('***** Epoch {} *****\n'.format(epoch))
             start = time.time()
             epoch_loss = 0
             for i, batch in enumerate(train_loader):
@@ -69,12 +70,12 @@ class Trainer:
                 scheduler.step()
                 epoch_loss += loss.item()
 
-                # 输出日志
+                # 计算平均损失
                 if (i + 1) % (len(train_loader) // 20) == 0:
-                    print('Step {:04d}/{:04d}  Loss: {:.4f}  Time: {}s:'
+                    print('Step {:04d}/{:04d}  Epoch Loss: {:.4f}  Time: {:.4f}s:'
                           .format((i + 1), len(train_loader), epoch_loss / (i + 1), time.time() - start))
 
-            print('Accuracy: {}'.format(self.evaluate(device)))
+            print('Accuracy: {:.4f}'.format(self.evaluate(device)))
 
     # 使用验证集评估模型
     def evaluate(self, device):

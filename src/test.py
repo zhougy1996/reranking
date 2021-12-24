@@ -16,11 +16,13 @@ tokenizer = BertTokenizer.from_pretrained(BERT_DIR)
 # Init model
 model = TextClassifier(BERT_DIR).to(DEVICE)
 # Init dataset
-dataset = pd.read_csv(os.path.join(ROOT_DIR, 'data/train_set.tsv'), sep='\t')
+dataset = pd.read_csv(os.path.join(ROOT_DIR, 'data/train_set.tsv'), sep='\t').head(100)
 # Init trainer
 trainer = Trainer(model, tokenizer, dataset)
 
 # Train with device and epoch_num
 trainer.train(DEVICE, 2)
 # Save trained model
-torch.save(model, os.path.join(ROOT_DIR, 'models/my_model.pkl'))
+# print('Accuracy: {:.4f}'.format(trainer.evaluate(DEVICE)))
+
+# torch.save(model, os.path.join(ROOT_DIR, 'models/my_model.pkl'))

@@ -1,6 +1,7 @@
 import time
 
 import torch
+import numpy as np
 from sklearn.metrics import accuracy_score
 from torch.utils.data import Dataset, DataLoader
 from transformers import AdamW, get_cosine_schedule_with_warmup
@@ -25,7 +26,7 @@ class TextSet(Dataset):
         query = self.dataset.loc[item, 'query']
         passage = self.dataset.loc[item, 'passage']
         is_relevant = self.dataset.loc[item, 'is_relevant']
-        return {'text': + query + '[SEP]' + passage, 'label': is_relevant}
+        return {'text': query + '[SEP]' + passage, 'label': is_relevant}
 
 
 class Trainer:
@@ -44,11 +45,10 @@ class Trainer:
         # 初始化训练参数
         model = self.model
         train_loader = self.train_loader
-        val_loader = self.val_loader
         optimizer = AdamW(model.parameters(), lr=2e-5, weight_decay=1e-4)
         scheduler = get_cosine_schedule_with_warmup(optimizer, num_warmup_steps=len(train_loader),
                                                     num_training_steps=epoch_num * len(train_loader))
-        criterion = torch.nn.CrossEntropyLoss()
+        criterion = torch.nn.BCEWithLogitsLoss()
 
         # 开始训练
         self.model.train()
@@ -63,7 +63,7 @@ class Trainer:
                 tokenized_text = self.tokenizer(texts, max_length=self.MAX_TEXT_LENGTH, truncation=True,
                                                 padding='max_length', return_tensors='pt')
                 outputs = model(**tokenized_text.to(device))
-                loss = criterion(outputs, labels.to(device))
+                loss = criterion(outputs, labels.view(labels.size(0), 1).float().to(device))
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
@@ -71,7 +71,7 @@ class Trainer:
                 epoch_loss += loss.item()
 
                 # 计算平均损失
-                if (i + 1) % (len(train_loader) // 20) == 0:
+                if (i + 1) % (len(train_loader) // 10) == 0:
                     print('Step {:04d}/{:04d}  Epoch Loss: {:.4f}  Time: {:.4f}s:'
                           .format((i + 1), len(train_loader), epoch_loss / (i + 1), time.time() - start))
 
@@ -90,7 +90,8 @@ class Trainer:
                 tokenized_text = self.tokenizer(texts, max_length=self.MAX_TEXT_LENGTH, truncation=True,
                                                 padding='max_length', return_tensors='pt')
                 outputs = model(**tokenized_text.to(device))
-                labels_pred.extend(torch.argmax(outputs, dim=1).detach().cpu().numpy().tolist())
+                outputs_np = outputs[:, 0].detach().cpu().numpy()
+                labels_pred.extend(np.where(outputs_np > 0.5, 1, 0).tolist())
                 labels_true.extend(labels.squeeze().cpu().numpy().tolist())
 
         return accuracy_score(labels_true, labels_pred)  # 返回accuracy

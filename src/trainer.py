@@ -4,7 +4,7 @@ import torch
 import numpy as np
 from sklearn.metrics import accuracy_score
 from torch.utils.data import Dataset, DataLoader
-from transformers import get_linear_schedule_with_warmup
+from transformers import AdamW, get_cosine_schedule_with_warmup
 from torch.utils.tensorboard import SummaryWriter
 
 
@@ -47,9 +47,8 @@ class Trainer:
         # 初始化训练参数
         model = self.model
         train_loader = self.train_loader
-        optimizer = torch.optim.SGD(model.parameters(), lr=1e-3, momentum=0.9, dampening=0,
-                                    weight_decay=1e-5, nesterov=False)
-        scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=len(train_loader),
+        optimizer = AdamW(model.parameters(), lr=1e-5, weight_decay=1e-4)
+        scheduler = get_cosine_schedule_with_warmup(optimizer, num_warmup_steps=len(train_loader),
                                                     num_training_steps=epoch_num*len(train_loader))
         criterion = torch.nn.BCELoss()
 

@@ -29,10 +29,8 @@ def predict(query, passage):
 
 
 def get_score(query, passage):
-    probabilities = torch.softmax(predict(query, passage), dim=1).data.numpy()[0]
-    odds = probabilities[1] / probabilities[0]
-    # Use log odds(logit) as score
-    return numpy.log(odds)
+    score = predict(query, passage).data.numpy()[0][0]
+    return score * 10
 
 
 # 读取验证集（使用2019年的测试集作为验证集，43个验证查询）
@@ -59,5 +57,5 @@ p = "Hebrew Meaning: The name Seraphina is a Hebrew baby name. In Hebrew the mea
 # print(loss_0)
 # print(loss_1)
 score = get_score(q, p)
-print(score)
+print('score: {:.4f}'.format(score))
 pass

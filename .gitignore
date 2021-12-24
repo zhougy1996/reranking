@@ -1,5 +1,6 @@
 # Directories
 pretrained/
+runs/
 # Files
 *.pkl
 

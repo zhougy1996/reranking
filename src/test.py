@@ -21,8 +21,8 @@ dataset = pd.read_csv(os.path.join(ROOT_DIR, 'data/train_set.tsv'), sep='\t').he
 trainer = Trainer(model, tokenizer, dataset)
 
 # Train with device and epoch_num
-trainer.train(DEVICE, 2)
+trainer.train(DEVICE, 1)
 # Save trained model
 # print('Accuracy: {:.4f}'.format(trainer.evaluate(DEVICE)))
 
-# torch.save(model, os.path.join(ROOT_DIR, 'models/my_model.pkl'))
+torch.save(model, os.path.join(ROOT_DIR, 'models/my_model.pkl'))
